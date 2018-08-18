@@ -4,10 +4,7 @@ import os
 import urllib2, urllib
 import urlparse
 import re
-try: 
-    import simplejson as json
-except ImportError: 
-    import json
+import simplejson
 try:
     from hashlib import md5
 except ImportError:
@@ -16,7 +13,7 @@ except ImportError:
 __name__ = 'pyitunes'
 __doc__ = 'A python interface to search iTunes Store'
 __author__ = 'Oscar Celma'
-__version__ = '0.2'
+__version__ = '0.1'
 __license__ = 'GPL'
 __maintainer__ = 'Oscar Celma'
 __email__ = 'ocelma@bmat.com'
@@ -83,7 +80,7 @@ class _Request(object):
                 response = self._get_cached_response()
             else:
                 response = self._download_response()
-            return json.loads(response)
+            return simplejson.loads(response)
         except urllib2.HTTPError, e:
             raise self._get_error(e.fp.read())
 
@@ -179,9 +176,7 @@ class _BaseObject(object):
 class Search(_BaseObject):
     """ Search iTunes Store """
 
-    def __init__(self, query, country=COUNTRY, media='all', entity=None,
-                 attribute=None, offset=0, limit=50, order=None,
-                 lang='en_us', version=API_VERSION, explicit='Yes'):
+    def __init__(self, query, country=COUNTRY, media='all', entity=None, attribute=None, limit=50, lang='en_us', version=API_VERSION, explicit='Yes'):
         _BaseObject.__init__(self, 'search')
 
         self._search_terms = dict()
@@ -193,10 +188,6 @@ class Search(_BaseObject):
         if attribute:
             self._search_terms['attribute'] = attribute # The attribute you want to search for in the stores, relative to the specified media type
         self._search_terms['limit'] = limit       # Results limit
-        if offset > 0:
-            self._search_terms['offset'] = offset
-        if order is not None:
-            self._search_terms['order'] = order
         self._search_terms['lang'] = lang         # The language, English or Japanese, you want to use when returning search results
         self._search_terms['version'] = version   # The search result key version you want to receive back from your search
         self._search_terms['explicit'] = explicit # A flag indicating whether or not you want to include explicit content in your search results
@@ -388,11 +379,9 @@ class Album(Item):
         self._set_artist(json)
 
     def _set_artist(self, json):
-        self.artist = None
-        if json.get('artistId'):
-            id = json['artistId']
-            self.artist = Artist(id)
-            self.artist._set(json)
+        id = json['artistId']
+        self.artist = Artist(id)
+        self.artist._set(json)
 
     # GETTERs
     def get_amg_id(self):
@@ -400,12 +389,6 @@ class Album(Item):
 
     def get_copyright(self):
         return self.copyright
-
-    def get_price(self):
-        return self.price
-
-    def get_track_count(self):
-        return self.track_count
 
     def get_artist(self):
         return self.artist
@@ -429,21 +412,14 @@ class Track(Item):
         self.duration = None
         if json.has_key('trackTimeMillis') and json['trackTimeMillis'] is not None:
             self.duration = round(json.get('trackTimeMillis', 0.0)/1000.0, 2)
-        try:
-            self._set_artist(json)
-        except KeyError:
-            self.artist = None
-        try:
-            self._set_album(json)
-        except KeyError:
-            self.album = None
+
+        self._set_artist(json)
+        self._set_album(json)
 
     def _set_artist(self, json):
-        self.artist = None
-        if json.get('artistId'):
-            id = json['artistId']
-            self.artist = Artist(id)
-            self.artist._set(json)
+        id = json['artistId']
+        self.artist = Artist(id)
+        self.artist._set(json)
 
     def _set_album(self, json):
         if json.has_key('collectionId'):
@@ -463,9 +439,6 @@ class Track(Item):
 
     def get_artist(self):
         return self.artist
-
-    def get_price(self):
-        return self.price
 
 # Audiobook
 class Audiobook(Album):
@@ -527,6 +500,8 @@ class Software(Track):
     # GETTERs
     def get_version(self):
         return self.version
+    def get_price(self):
+        return self.price
     def get_description(self):
         return self.description
     def get_screenshots(self):
@@ -581,25 +556,17 @@ def get_md5(text):
     return hash.hexdigest()
 
 #SEARCHES
-def search_track(query, limit=100, offset=0, order=None, store=COUNTRY):
-    return Search(query=query, media='music', entity='song',
-                  offset=offset, limit=limit, order=order, country=store).get()
+def search_track(query, limit=100):
+    return Search(query=query, media='music', entity='song', limit=limit).get()
 
-def search_album(query, limit=100, offset=0, order=None, store=COUNTRY):
-    return Search(query=query, media='music', entity='album',
-                  limit=limit, offset=offset, order=order, country=store).get()
+def search_album(query, limit=100):
+    return Search(query=query, media='music', entity='album', limit=limit).get()
 
-def search_artist(query, limit=100, offset=0, order=None, store=COUNTRY):
-    return Search(query=query, media='music', entity='musicArtist',
-                  limit=limit, offset=offset, order=order, country=store).get()
+def search_artist(query, limit=100):
+    return Search(query=query, media='music', entity='musicArtist', limit=limit).get()
 
-def search_app(query, limit=100, offset=0, order=None, store=COUNTRY):
-    return Search(query=query, media='software', limit=limit,
-                  offset=offset, order=order, country=store).get()
-
-def search(query, media='all', limit=100, offset=0, order=None, store=COUNTRY):
-    return Search(query=query, media=media, limit=limit,
-                  offset=offset, order=order, country=store).get()
+def search(query, media='all', limit=500):
+    return Search(query=query, media=media, limit=limit).get()
 
 #LOOKUP
 def lookup(id):

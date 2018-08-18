@@ -11,22 +11,6 @@ Pypi package available at http://pypi.python.org/pypi/python-itunes/1.0
 ::
 
   $ easy_install python-itunes
-
-Or download the code from https://github.com/ocelma/python-itunes/archives/master and then
-
-::
-
-  $ python setup.py install
-
-.. note::
-
-  If you're using python version <= 2.5 you'll need to install simplejson. E.g:
-
-::
-
-  $ easy_install simplejson
-
-
 Examples
 --------
 
@@ -74,7 +58,7 @@ Lookup
   import itunes
 
   # Lookup Achtung Baby album by U2
-  U2_ACHTUNGBABY_ID = 475390461
+  U2_ACHTUNGBABY_ID = 368713
   album = itunes.lookup(U2_ACHTUNGBABY_ID)
   
   print album.get_url()
@@ -84,7 +68,7 @@ Lookup
   tracks = album.get_tracks()
  
   # Lookup song One from Achtung Baby album by U2
-  U2_ONE_ID = 475391315
+  U2_ONE_ID = 368617
   track = itunes.lookup(U2_ONE_ID)
 
   artist = track.get_artist()
