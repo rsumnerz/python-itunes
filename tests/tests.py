@@ -15,11 +15,11 @@ U2_ACHTUNGBABY_ID = 368713
 U2_ID = 78500
 
 #SEARCHES
-def test_search_track():
-    assert_equal(itunes.search_track('u2 achtung baby one')[0].get_id(), U2_ONE_ID)
+def test_search_track_kind():
+    assert_equal(itunes.search_track('u2 achtung baby one')[0].get_type(), SONG_KIND)
 
 def test_search_album():
-    assert_equal(itunes.search_album('u2 achtung baby')[0].get_id(), U2_ACHTUNGBABY_ID)
+    assert_equal(itunes.search_album('u2 achtung baby')[0].get_type(), COLLECTION_KIND)
 
 def test_search_artist():
     assert_equal(itunes.search_artist('u2')[0].get_id(), U2_ID)
@@ -68,6 +68,10 @@ def test_track_url():
 def test_album_length():
     item = itunes.lookup(U2_ACHTUNGBABY_ID)
     assert_true(len(item.get_tracks()) == 12)
+
+def test_music_video_kind():
+    item = itunes.lookup(U2_ID)
+    assert_equal(item.get_music_videos()[0].get_type(), MUSIC_VIDEO_KIND)
 
 #TEXT: Unicode
 def test_unicode():

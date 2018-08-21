@@ -297,6 +297,10 @@ class Item(object):
         """ Returns the Item's name """
         return self.__repr__()
 
+    def get_type(self):
+        """ Returns the type of the Item """
+        return self.type
+
     def get_url(self):
         """ Returns the iTunes Store URL of the Item """
         return self.url
